@@ -1,0 +1,39 @@
+doctype html
+head
+  meta(charset='utf-8')
+  meta(http-equiv='X-UA-Compatible' content='IE=edge')
+  title Quiz matematyczny
+  meta(name='viewport' content='width=device-width, initial-scale=1')
+  link(rel='stylesheet' type='text/css' media='screen' href='/stylesheets/style.css')
+.wrapper
+  #nav
+    #time
+      span#time_number 0:00:00
+    #left_button.nav_button
+      | &lt;
+    #right_button.nav_button
+      | &gt;
+    #buttons
+      #first_button.big_button
+        | Stop
+      #second_button.big_button
+        | Przerwij
+  .main_box
+    .main_content
+      #intro
+        h2#header Quiz matematyczny
+        p#intro_text
+        |                     Numer pytania: 
+        span#question_nr
+        |                     /
+        span#question_count
+      #question
+        .question_content.quiz_table
+          #question_field.content
+            | 
+      #penalty
+        | Kara za z&lstrok;&aogon; odpowied&zacute;: 
+        span#penalty_number
+        | s
+script(src='/javascripts/main.js')
+script= 'let raw = `' + rawQuiz + '`; parseQuiz(raw); run();'

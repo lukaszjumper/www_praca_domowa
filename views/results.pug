@@ -16,23 +16,18 @@ head
     #score_info
       | Tw&oacute;j og&oacute;lny wynik: 
       p#score 0
-      label(for='box') Zapisz statystyki
-      input#box(type='checkbox')
     #buttons
       #first_button.big_button
-        | Stop
-      #second_button.big_button
-        | Przerwij
+        | Zakończ
   .main_box
     .main_content
-      #intro
-        h2#header Quiz matematyczny
+      #intro Poniżej są wyświetlane są Twoje wyniki. Na zielono zaznaczono poprawne odpowiedzi.
+        h2#header Dziękujemy za rozwiązanie quizu!
         p#intro_text
-          | Przyk&lstrok;adowy opis.
         |                     Numer pytania: 
-        span#question_nr 0
+        span#question_nr
         |                     /
-        span#question_count 0
+        span#question_count
         #time_spended_box
           | Czas sp&eogon;dzony na tym pytaniu:
           span#time_spended
@@ -41,9 +36,11 @@ head
       #question
         .question_content.quiz_table
           #question_field.content
-            | Przyk&lstrok;adowe pytanie
+            | 
       #penalty
         | Kara za z&lstrok;&aogon; odpowied&zacute;: 
-        span#penalty_number 0
+        span#penalty_number
         | s
 script(src='/javascripts/main.js')
+script= 'let rawAns= `' + rawAns + '`; let rawTimes= `' + rawTimes + '`; parseTables(rawAns, rawTimes);'
+script= 'let raw = `' + rawQuiz + '`; parseQuiz(raw); resultsCustom();'

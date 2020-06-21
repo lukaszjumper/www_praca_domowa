@@ -3,9 +3,12 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var session = require('express-session');
+var SQLiteStore = require('connect-sqlite3')(session);
 
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+var quizesRouter = require('./routes/quizes');
+var loggingRouter = require('./routes/logging');
 
 var app = express();
 
@@ -19,8 +22,18 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(session({
+    store: new SQLiteStore,
+    cookie: {},
+    secret: "Z058otg5NO9RnAzyXJu3N2GtYfBFUzNnigBbm0m0EBhY2IBGMNTdJIB19fsmqhQZWBblp50Jgs5pN2NPLIBAsa69GJjLelyQn4TAowWfOyXDyl88ElhvGVWkwLKOu5rx",
+    resave: true,
+    saveUninitialized: false
+}));
+
+//app.use('/', indexRouter);
+app.use('/quizes', quizesRouter);
+app.use('/logging', loggingRouter);
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

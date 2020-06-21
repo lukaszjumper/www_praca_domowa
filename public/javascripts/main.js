@@ -1,34 +1,35 @@
-"use strict";
-// Dane quizów w formacie JSON
-var quizes = new Map();
-quizes.set('geometria', "{\n    \"intro\": \"Oto prosty przyk\u0142adowy test z geometrii. Zach\u0119camy do sprawdzenia si\u0119!\",\n    \"questions\": [\n      {\n        \"content\": \"Oblicz pole prostok\u0105ta o bokach 3, 10\",\n        \"answers\": [\n          \"3\",\n          \"30\",\n          \"60\",\n          \"9\"\n        ],\n        \"correct\": 2,\n        \"penalty\": 2\n      },\n      {\n        \"content\": \"Jakie jest pole kwasratu o boku 2?\",\n        \"answers\": [\n          \"1\",\n          \"2\",\n          \"3\",\n          \"4\"\n        ],\n        \"correct\": 4,\n        \"penalty\": 4\n      },\n      {\n        \"content\": \"Jaka jest odleg\u0142o\u015B\u0107 punkt\u00F3w (1,1) i (5, 4) ?\",\n        \"answers\": [\n          \"5\",\n          \"7\",\n          \"11\"\n        ],\n        \"correct\": 1,\n        \"penalty\": 10\n      },\n      {\n          \"content\": \"Jaki jest obw\u00F3d kwadratu o boku 3?\",\n          \"answers\": [\n              \"9\",\n              \"12\"\n          ],\n          \"correct\": 2,\n          \"penalty\": 9\n      }\n    ]\n  }");
-quizes.set('arytmetyka', "{\n    \"intro\": \"Oto test z arytmetyki!\",\n    \"questions\": [\n      {\n        \"content\": \"Oblicz 231+331\",\n        \"answers\": [\n          \"653\",\n          \"566\",\n          \"562\",\n          \"653\"\n        ],\n        \"correct\": 3,\n        \"penalty\": 15\n      },\n      {\n        \"content\": \"Oblicz 500-342\",\n        \"answers\": [\n          \"258\",\n          \"158\",\n          \"268\",\n          \"168\"\n        ],\n        \"correct\": 2,\n        \"penalty\": 16\n      },\n      {\n        \"content\": \"Oblicz 4*4*4\",\n        \"answers\": [\n          \"64\",\n          \"16\",\n          \"128\",\n          \"54\"\n        ],\n        \"correct\": 1,\n        \"penalty\": 20\n      },\n      {\n        \"content\": \"Oblicz 15*15\",\n        \"answers\": [\n          \"225\",\n          \"200\",\n          \"250\",\n          \"325\"\n        ],\n        \"correct\": 1,\n        \"penalty\": 15\n      }\n    ]\n  }");
 // Elemety strony
-var buttonLeft = document.getElementById('left_button');
-var buttonRight = document.getElementById('right_button');
-var buttonFirst = document.getElementById('first_button');
-var buttonSecond = document.getElementById('second_button');
-var nav = document.getElementById('nav');
-var questionField = document.getElementById('question_field');
-var questionBox = document.getElementById('question');
-var questionNr = document.getElementById('question_nr');
-var questionCount = document.getElementById('question_count');
-var penaltyNr = document.getElementById('penalty_number');
-var penaltyBox = document.getElementById('penalty');
-var timer = document.getElementById('time_number');
-var introFiled = document.getElementById('intro_text');
-var header = document.getElementById('header');
-var score = document.getElementById('score_info');
-var checkbox = document.getElementById('box');
-var scoreNumber = document.getElementById('score');
-var timeSpendedBox = document.getElementById('time_spended_box');
-var timeSpendedNumber = document.getElementById('time_spended');
-// Odczytywanie, który quiz ma być wczytany
-var urlParams = new URLSearchParams(window.location.search);
-var whichQuiz = urlParams.get('quiz');
-var quizData = JSON.parse(quizes.get(whichQuiz));
+const buttonLeft = document.getElementById('left_button');
+const buttonRight = document.getElementById('right_button');
+const buttonFirst = document.getElementById('first_button');
+const buttonSecond = document.getElementById('second_button');
+const nav = document.getElementById('nav');
+const questionField = document.getElementById('question_field');
+const questionBox = document.getElementById('question');
+const questionNr = document.getElementById('question_nr');
+const questionCount = document.getElementById('question_count');
+const penaltyNr = document.getElementById('penalty_number');
+const penaltyBox = document.getElementById('penalty');
+const timer = document.getElementById('time_number');
+const introFiled = document.getElementById('intro_text');
+const header = document.getElementById('header');
+const score = document.getElementById('score_info');
+const scoreNumber = document.getElementById('score');
+const timeSpendedBox = document.getElementById('time_spended_box');
+const timeSpendedNumber = document.getElementById('time_spended');
+let quizData = {};
+function parseQuiz(rawQuiz) {
+    rawQuiz = rawQuiz.replace(/&quot;/gi, '"');
+    quizData = JSON.parse(rawQuiz);
+}
+function parseTables(rawAns, rawTimes) {
+    rawAns = rawAns.replace(/&quot;/gi, '"');
+    chosen = JSON.parse(rawAns);
+    rawTimes = rawTimes.replace(/&quot;/gi, '"');
+    timeSpended = JSON.parse(rawTimes);
+}
 // Zmienna określająca czy rozwiązywaniu już się zakończyło
-var terminated = false;
+let terminated = false;
 // Funkcja spawia, że element jest niedozwolony
 function disable(element) {
     element.style.opacity = '0.3';
@@ -40,13 +41,13 @@ function enable(element) {
     element.style.pointerEvents = 'all';
 }
 // Elementy reprezentujące odpowiedzi na obecnym ekranie
-var currentAnswers = new Array();
+let currentAnswers = new Array();
 // Ładuje odpowiedź
 function loadAnswer(i, question) {
-    var answerContent = document.createElement('div');
+    const answerContent = document.createElement('div');
     answerContent.innerHTML = question.answers[i];
     answerContent.className = 'content';
-    var newAnswer = document.createElement('div');
+    const newAnswer = document.createElement('div');
     newAnswer.className = 'answer quiz_table';
     newAnswer.appendChild(answerContent);
     currentAnswers.push(newAnswer);
@@ -58,18 +59,18 @@ function loadQuestion(question, nr) {
     questionNr.innerHTML = nr.toString();
     penaltyNr.innerHTML = question.penalty.toString();
     questionField.innerHTML = question.content;
-    var oldAnsCount = currentAnswers.length;
-    for (var i = 0; i < oldAnsCount; i++) {
+    const oldAnsCount = currentAnswers.length;
+    for (let i = 0; i < oldAnsCount; i++) {
         questionBox.removeChild(currentAnswers.pop());
     }
-    for (var i = 0; i < question.answers.length; i++) {
+    for (let i = 0; i < question.answers.length; i++) {
         loadAnswer(i, question);
     }
     colorAnswers();
     if (terminated) {
         answersBlock();
         timeSpendedNumber.innerHTML =
-            (timeSpended[currentQuestion] / 100).toString();
+            timeSpended[currentQuestion].toString();
         if (chosen[currentQuestion] === quizData.questions[currentQuestion].correct - 1) {
             penaltyBox.style.visibility = 'hidden';
         }
@@ -80,7 +81,7 @@ function loadQuestion(question, nr) {
     }
 }
 // Numer obecnie wyświetlanego pytania
-var currentQuestion = 0;
+let currentQuestion = 0;
 // Przełączanie pytań
 function nextQuestion() {
     timeSpended[currentQuestion] += getTimeSpended();
@@ -107,13 +108,13 @@ function prevQuestion() {
 }
 buttonLeft.onclick = prevQuestion;
 // Zapis odpowiedzi
-var chosen = new Array();
-var timeSpended = new Array();
-var answeredCount = 0;
+let chosen = new Array();
+let timeSpended = new Array();
+let answeredCount = 0;
 // Zaznacza odpowiednie odpowiedzi
 function makeAnswerChosen(answerField) {
     if (chosen[currentQuestion] !== undefined) {
-        var oldChosen = currentAnswers[chosen[currentQuestion]];
+        const oldChosen = currentAnswers[chosen[currentQuestion]];
         oldChosen.style.backgroundColor = 'rgb(115, 115, 252)';
         oldChosen.style.pointerEvents = 'all';
     }
@@ -123,7 +124,7 @@ function makeAnswerChosen(answerField) {
     }
 }
 function resetTimeSpended() {
-    for (var i = 0; i < quizData.questions.length; i++) {
+    for (let i = 0; i < quizData.questions.length; i++) {
         timeSpended[i] = 0;
     }
 }
@@ -131,7 +132,7 @@ function colorAnswers() {
     makeAnswerChosen(currentAnswers[chosen[currentQuestion]]);
 }
 function generateAnswerOnClickFunc(answerField, answerNumber) {
-    return function (event) {
+    return (event) => {
         makeAnswerChosen(answerField);
         if (chosen[currentQuestion] === undefined) {
             answeredCount++;
@@ -152,15 +153,16 @@ function customNumberNotation(n) {
     }
 }
 // Zmienne służące mierzeniu czasu
-var time = 0;
-var lastMeasure = 0;
+let time = 0;
+let lastMeasure = 0;
+let timeStats = new Array();
 // Mierzenie czasu
 function timeMeasure() {
     if (terminated) {
         timer.innerHTML = 'Koniec!';
         return;
     }
-    var timeStr = customNumberNotation(Math.floor(time / 6000)) + ':'
+    const timeStr = customNumberNotation(Math.floor(time / 6000)) + ':'
         + customNumberNotation(Math.floor(time / 100) % 60) + ':'
         + customNumberNotation(time % 100);
     timer.innerHTML = timeStr;
@@ -169,26 +171,75 @@ function timeMeasure() {
 }
 // Podaje czas od ostatniego wywołania tej funkcji (lub początku wykonywania kodu)
 function getTimeSpended() {
-    var result = time - lastMeasure;
+    const result = time - lastMeasure;
     lastMeasure = time;
     return result;
 }
 // Wynik końcowy
-var endScore = 0;
+let endScore = 0;
 // Czynności po zakończeniu rozwiązywania
 function endGame(event) {
     terminated = true;
     timeSpended[currentQuestion] += getTimeSpended();
-    buttonFirst.innerHTML = 'Zakończ';
-    buttonFirst.onclick = saveAndEnd;
-    buttonSecond.style.display = 'none';
-    header.innerHTML = 'Dziękujemy za rozwiązanie quizu!';
-    introFiled.innerHTML = 'Poniżej są wyświetlane są Twoje wyniki. Na zielono zaznaczono poprawne odpowiedzi.';
+    calcStats();
+    sendToServer();
+}
+// Liczy czas procentowo
+function calcStats() {
+    for (let i = 0; i < quizData.questions.length; i++) {
+        timeStats[i] = timeSpended[i] / time;
+    }
+}
+function sendToServer() {
+    const ansForm = document.createElement('form');
+    ansForm.method = 'POST';
+    const ansInput = document.createElement('input');
+    ansInput.name = 'answered';
+    ansInput.value = JSON.stringify(chosen);
+    ansForm.appendChild(ansInput);
+    const statsInput = document.createElement('input');
+    statsInput.name = 'stats';
+    statsInput.value = JSON.stringify(timeStats);
+    ansForm.appendChild(statsInput);
+    document.body.appendChild(ansForm);
+    ansForm.submit();
+}
+buttonFirst.onclick = endGame;
+// Blokuje wybieranie odpowiedzi i zaznacza prawidłowe
+function answersBlock() {
+    currentAnswers[quizData.questions[currentQuestion].correct - 1]
+        .style.backgroundColor = 'green';
+    for (const ans of currentAnswers) {
+        ans.style.pointerEvents = 'none';
+    }
+}
+function run() {
+    loadQuestion(quizData.questions[0], 1);
+    resetTimeSpended();
+    timeMeasure();
+    if (quizData.questions.length === 1) {
+        disable(buttonRight);
+    }
+    // Ładowanie elementów strony i rozpoczęcie działania
+    questionCount.innerHTML = quizData.questions.length.toString();
+    introFiled.innerHTML = quizData.intro;
+}
+// Przycisk przerwania
+function backToStart() {
+    window.location.href = '/';
+}
+buttonSecond.onclick = backToStart;
+// Wyświetlanie wyników
+function resultsCustom() {
+    terminated = true;
     currentQuestion = 0;
     loadQuestion(quizData.questions[0], 1);
     disable(buttonLeft);
     if (quizData.questions.length > 1) {
         enable(buttonRight);
+    }
+    if (quizData.questions.length === 1) {
+        disable(buttonRight);
     }
     answersBlock();
     if (window.matchMedia("(min-width: 600px)").matches) {
@@ -197,81 +248,6 @@ function endGame(event) {
     else {
         score.style.height = '100px';
     }
-    score.style.visibility = 'visible';
-    timeSpendedBox.style.display = 'block';
-    scoreCount();
 }
-// Liczy wyniki i wypisuje
-function scoreCount() {
-    for (var i = 0; i < quizData.questions.length; i++) {
-        endScore += timeSpended[i];
-        if (chosen[i] !== quizData.questions[i].correct - 1) {
-            endScore += quizData.questions[i].penalty * 100;
-        }
-    }
-    endScore /= 100;
-    scoreNumber.innerHTML = endScore.toString();
-}
-buttonFirst.onclick = endGame;
-// Blokuje wybieranie odpowiedzi i zaznacza prawidłowe
-function answersBlock() {
-    currentAnswers[quizData.questions[currentQuestion].correct - 1]
-        .style.backgroundColor = 'green';
-    for (var _i = 0, currentAnswers_1 = currentAnswers; _i < currentAnswers_1.length; _i++) {
-        var ans = currentAnswers_1[_i];
-        ans.style.pointerEvents = 'none';
-    }
-}
-// Zapisuje wyniki i kończy grę
-function saveAndEnd() {
-    // Zmienn określająca ile rezultatów jest zapisanych
-    // Jest zapisana w localStorage pod nazwą quizu
-    var resutsCount;
-    if (localStorage.getItem(whichQuiz) === null) {
-        resutsCount = 1;
-    }
-    else {
-        resutsCount = parseInt(localStorage.getItem(whichQuiz), 10);
-    }
-    localStorage.setItem(whichQuiz, (resutsCount + 1).toString());
-    localStorage.setItem(whichQuiz + resutsCount, endScore.toString());
-    if (checkbox.checked) {
-        saveStats(resutsCount);
-    }
-    window.location.href = 'start.html';
-}
-// Zapisywanie statystyk
-function saveStats(resutsCount) {
-    for (var i = 0; i < quizData.questions.length; i++) {
-        // Czas zapisujemy pod kluczem:
-        // nazwa quizu + numer rezultatu + 'time' + nr pytania
-        localStorage.setItem(whichQuiz + resutsCount + 'time' + (i + 1), timeSpended[i].toString());
-        // Poprawność udzielonych odpowiedzi zapisujemy pod  kluczem:
-        // nazwa quizu + numer rezultatu + 'answer' + nr pytania
-        if (chosen[i] !== quizData.questions[i].correct - 1) {
-            localStorage
-                .setItem(whichQuiz + resutsCount + 'answer' + (i + 1), 'fail');
-        }
-        else {
-            localStorage
-                .setItem(whichQuiz + resutsCount + 'answer' + (i + 1), 'ok');
-        }
-    }
-}
-// Przycisk przerwania
-function backToStart() {
-    window.location.href = 'start.html';
-}
-buttonSecond.onclick = backToStart;
-// Ładowanie elementów strony i rozpoczęcie działania
-questionCount.innerHTML = quizData.questions.length.toString();
-introFiled.innerHTML = quizData.intro;
-header.innerHTML = whichQuiz;
 disable(buttonFirst);
-loadQuestion(quizData.questions[0], 1);
 disable(buttonLeft);
-if (quizData.questions.length === 1) {
-    disable(buttonRight);
-}
-resetTimeSpended();
-timeMeasure();

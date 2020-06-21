@@ -1,0 +1,15 @@
+html
+    head
+        title Logowanie
+        link(rel='stylesheet' type='text/css' media='screen' href='/stylesheets/style.css')
+    body
+        h2="Logowanie"
+        form(method="POST")
+            input(name="id" type="text" required placeholder="Login")
+            br
+            input(name="password" type="password" required placeholder = "Hasło")
+            br
+            input(type="hidden" name="_csrf" value= csrfToken)
+            input(type="submit" value="Zaloguj się")
+        p=message
+        a(href="/logging/change") Zmiana hasła

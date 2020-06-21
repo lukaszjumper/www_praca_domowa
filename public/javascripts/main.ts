@@ -11,109 +11,11 @@ interface Quiz {
     questions: Question[];
 }
 
-// Dane quizów w formacie JSON
-let quizes = new Map<string, string>();
-
-quizes.set('geometria', `{
-    "intro": "Oto prosty przykładowy test z geometrii. Zachęcamy do sprawdzenia się!",
-    "questions": [
-      {
-        "content": "Oblicz pole prostokąta o bokach 3, 10",
-        "answers": [
-          "3",
-          "30",
-          "60",
-          "9"
-        ],
-        "correct": 2,
-        "penalty": 2
-      },
-      {
-        "content": "Jakie jest pole kwasratu o boku 2?",
-        "answers": [
-          "1",
-          "2",
-          "3",
-          "4"
-        ],
-        "correct": 4,
-        "penalty": 4
-      },
-      {
-        "content": "Jaka jest odległość punktów (1,1) i (5, 4) ?",
-        "answers": [
-          "5",
-          "7",
-          "11"
-        ],
-        "correct": 1,
-        "penalty": 10
-      },
-      {
-          "content": "Jaki jest obwód kwadratu o boku 3?",
-          "answers": [
-              "9",
-              "12"
-          ],
-          "correct": 2,
-          "penalty": 9
-      }
-    ]
-  }`);
-
-  quizes.set('arytmetyka', `{
-    "intro": "Oto test z arytmetyki!",
-    "questions": [
-      {
-        "content": "Oblicz 231+331",
-        "answers": [
-          "653",
-          "566",
-          "562",
-          "653"
-        ],
-        "correct": 3,
-        "penalty": 15
-      },
-      {
-        "content": "Oblicz 500-342",
-        "answers": [
-          "258",
-          "158",
-          "268",
-          "168"
-        ],
-        "correct": 2,
-        "penalty": 16
-      },
-      {
-        "content": "Oblicz 4*4*4",
-        "answers": [
-          "64",
-          "16",
-          "128",
-          "54"
-        ],
-        "correct": 1,
-        "penalty": 20
-      },
-      {
-        "content": "Oblicz 15*15",
-        "answers": [
-          "225",
-          "200",
-          "250",
-          "325"
-        ],
-        "correct": 1,
-        "penalty": 15
-      }
-    ]
-  }`);
 
 // Elemety strony
 const buttonLeft = document.getElementById('left_button');
 const buttonRight = document.getElementById('right_button');
+
 const buttonFirst = document.getElementById('first_button');
 const buttonSecond = document.getElementById('second_button');
 
@@ -128,16 +30,24 @@ const timer = document.getElementById('time_number');
 const introFiled = document.getElementById('intro_text');
 const header = document.getElementById('header');
 const score = document.getElementById('score_info');
-const checkbox = document.getElementById('box') as HTMLInputElement;
 const scoreNumber = document.getElementById('score');
 const timeSpendedBox = document.getElementById('time_spended_box');
 const timeSpendedNumber = document.getElementById('time_spended');
 
-// Odczytywanie, który quiz ma być wczytany
-const urlParams = new URLSearchParams(window.location.search);
-const whichQuiz = urlParams.get('quiz');
+let quizData = {} as Quiz;
 
-let quizData = JSON.parse(quizes.get(whichQuiz)) as Quiz;
+function parseQuiz(rawQuiz: string) {
+    rawQuiz = rawQuiz.replace(/&quot;/gi, '"');
+    quizData = JSON.parse(rawQuiz);
+}
+
+function parseTables(rawAns: string, rawTimes: string) {
+    rawAns = rawAns.replace(/&quot;/gi, '"');
+    chosen = JSON.parse(rawAns);
+
+    rawTimes = rawTimes.replace(/&quot;/gi, '"');
+    timeSpended = JSON.parse(rawTimes);
+}
 
 // Zmienna określająca czy rozwiązywaniu już się zakończyło
 let terminated = false;
@@ -190,7 +100,7 @@ function loadQuestion(question: Question, nr: number) {
     if (terminated) {
         answersBlock();
         timeSpendedNumber.innerHTML =
-            (timeSpended[currentQuestion] / 100).toString();
+            timeSpended[currentQuestion].toString();
 
         if (chosen[currentQuestion] === quizData.questions[currentQuestion].correct-1) {
             penaltyBox.style.visibility = 'hidden';
@@ -292,6 +202,7 @@ function customNumberNotation(n: number) : string {
 // Zmienne służące mierzeniu czasu
 let time = 0;
 let lastMeasure = 0;
+let timeStats = new Array<number>();
 
 // Mierzenie czasu
 function timeMeasure() {
@@ -323,44 +234,33 @@ function endGame(event: Event) {
     terminated = true;
     timeSpended[currentQuestion] += getTimeSpended();
 
-    buttonFirst.innerHTML = 'Zakończ';
-    buttonFirst.onclick = saveAndEnd;
-    buttonSecond.style.display = 'none';
-    header.innerHTML = 'Dziękujemy za rozwiązanie quizu!';
-    introFiled.innerHTML = 'Poniżej są wyświetlane są Twoje wyniki. Na zielono zaznaczono poprawne odpowiedzi.'
-
-    currentQuestion = 0;
-    loadQuestion(quizData.questions[0], 1);
-    disable(buttonLeft);
-    if (quizData.questions.length > 1) {
-        enable(buttonRight);
-    }
-    answersBlock();
-
-    if (window.matchMedia("(min-width: 600px)").matches) {
-        nav.style.gridTemplateRows = '100px 50px 100px auto';
-    }
-    else {
-        score.style.height = '100px';
-    }
-
-    score.style.visibility = 'visible';
-    timeSpendedBox.style.display = 'block';
-
-    scoreCount();
+    calcStats();
+    sendToServer();
 }
 
-// Liczy wyniki i wypisuje
-function scoreCount() {
+// Liczy czas procentowo
+function calcStats() {
     for (let i=0; i<quizData.questions.length; i++) {
-        endScore += timeSpended[i];
-        if (chosen[i] !== quizData.questions[i].correct-1) {
-            endScore += quizData.questions[i].penalty * 100;
-        }
+        timeStats[i] = timeSpended[i] / time;
     }
+}
 
-    endScore /= 100;
-    scoreNumber.innerHTML = endScore.toString();
+function sendToServer() {
+    const ansForm = document.createElement('form');
+    ansForm.method = 'POST';
+
+    const ansInput = document.createElement('input');
+    ansInput.name = 'answered';
+    ansInput.value = JSON.stringify(chosen);
+    ansForm.appendChild(ansInput);
+
+    const statsInput = document.createElement('input');
+    statsInput.name = 'stats';
+    statsInput.value = JSON.stringify(timeStats);
+    ansForm.appendChild(statsInput);
+
+    document.body.appendChild(ansForm);
+    ansForm.submit();
 }
 
 buttonFirst.onclick = endGame;
@@ -375,70 +275,47 @@ function answersBlock() {
     }
 }
 
-// Zapisuje wyniki i kończy grę
-function saveAndEnd() {
-    // Zmienn określająca ile rezultatów jest zapisanych
-    // Jest zapisana w localStorage pod nazwą quizu
-    let resutsCount: number;
-
-    if (localStorage.getItem(whichQuiz) === null) {
-        resutsCount = 1;
+function run() {
+    loadQuestion(quizData.questions[0], 1);
+    resetTimeSpended();
+    timeMeasure();
+    if (quizData.questions.length === 1) {
+    disable(buttonRight);
     }
-    else {
-        resutsCount = parseInt(localStorage.getItem(whichQuiz), 10);
-    }
-
-    localStorage.setItem(whichQuiz, (resutsCount+1).toString());
-    localStorage.setItem(whichQuiz + resutsCount, endScore.toString());
-
-
-    if (checkbox.checked) {
-        saveStats(resutsCount);
-    }
-    window.location.href = 'start.html';
-}
-
-// Zapisywanie statystyk
-function saveStats(resutsCount: number) {
-    for (let i=0; i<quizData.questions.length; i++) {
-        // Czas zapisujemy pod kluczem:
-        // nazwa quizu + numer rezultatu + 'time' + nr pytania
-        localStorage.setItem(whichQuiz + resutsCount + 'time' + (i+1),
-                             timeSpended[i].toString());
-
-        // Poprawność udzielonych odpowiedzi zapisujemy pod  kluczem:
-        // nazwa quizu + numer rezultatu + 'answer' + nr pytania
-        if (chosen[i] !== quizData.questions[i].correct-1) {
-            localStorage
-            .setItem(whichQuiz + resutsCount + 'answer' + (i+1), 'fail');
-        }
-        else {
-            localStorage
-            .setItem(whichQuiz + resutsCount + 'answer' + (i+1), 'ok');
-        }
-    }
+    // Ładowanie elementów strony i rozpoczęcie działania
+    questionCount.innerHTML = quizData.questions.length.toString();
+    introFiled.innerHTML = quizData.intro;
 }
 
 // Przycisk przerwania
 function backToStart() {
-    window.location.href = 'start.html';
+    window.location.href = '/';
 }
 
 buttonSecond.onclick = backToStart;
 
-// Ładowanie elementów strony i rozpoczęcie działania
-questionCount.innerHTML = quizData.questions.length.toString();
-introFiled.innerHTML = quizData.intro;
-header.innerHTML = whichQuiz;
+// Wyświetlanie wyników
+function resultsCustom() {
+    terminated = true;
 
-disable(buttonFirst);
+    currentQuestion = 0;
+    loadQuestion(quizData.questions[0], 1);
+    disable(buttonLeft);
+    if (quizData.questions.length > 1) {
+      enable(buttonRight);
+    }
+    if (quizData.questions.length === 1) {
+        disable(buttonRight);
+    }
+    answersBlock();
 
-loadQuestion(quizData.questions[0], 1);
-
-disable(buttonLeft);
-if (quizData.questions.length === 1) {
-    disable(buttonRight);
+    if (window.matchMedia("(min-width: 600px)").matches) {
+      nav.style.gridTemplateRows = '100px 50px 100px auto';
+    }
+    else {
+        score.style.height = '100px';
+    }
 }
 
-resetTimeSpended();
-timeMeasure();
+disable(buttonFirst);
+disable(buttonLeft);

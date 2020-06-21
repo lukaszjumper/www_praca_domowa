@@ -1,0 +1,16 @@
+html
+    head
+        title Zmiana hasła
+        link(rel='stylesheet' type='text/css' media='screen' href='/stylesheets/style.css')
+    body
+        h2="Zmiana hasła"
+        form(method="POST")
+            input(name="id" type="text" required placeholder="Login")
+            br
+            input(name="oldpass" type="password" required placeholder = "Stare hasło")
+            br
+            input(name="newpass" type="password" required placeholder = "Nowe hasło")
+            br
+            input(type="hidden" name="_csrf" value= csrfToken)
+            input(type="submit" value="Zmień")
+        p=message
