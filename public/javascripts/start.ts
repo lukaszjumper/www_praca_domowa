@@ -35,7 +35,7 @@ function parseStats(rawStats: string) {
 }
 
 function runStartScreen() {
-    seeStats();
+    quizSelection();
 }
 
 // Ładuje dane do tabeli wyników

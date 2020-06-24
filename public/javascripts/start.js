@@ -22,7 +22,7 @@ function parseStats(rawStats) {
     statsData = JSON.parse(rawStats);
 }
 function runStartScreen() {
-    seeStats();
+    quizSelection();
 }
 // Ładuje dane do tabeli wyników
 function loadStats() {

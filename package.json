@@ -4,8 +4,8 @@
   "description": "Projekt zaliczeniowy z aplikacji WWW",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc --target es2015 --module commonjs routes/index.ts routes/quizes.ts routes/logging.ts public/javascripts/main.ts public/javascripts/start.ts public/javascripts/types.ts createdb.ts",
+    "test": "node ./tests/test.js",
+    "build": "tsc --target es2015 --module commonjs routes/index.ts routes/quizes.ts routes/logging.ts public/javascripts/main.ts public/javascripts/start.ts public/javascripts/types.ts public/javascripts/auth.ts createdb.ts tests/test.ts",
     "start": "node ./bin/www",
     "createdb": "node ./createdb.js"
   },
@@ -32,12 +32,14 @@
     "http-errors": "~1.6.3",
     "morgan": "^1.9.1",
     "pug": "^2.0.0-beta11",
+    "selenium-webdriver": "^4.0.0-alpha.7",
     "sqlite3": "^4.2.0",
     "typescript": "^3.9.5"
   },
   "devDependencies": {
     "@types/express": "^4.17.6",
     "@types/node": "^14.0.13",
+    "@types/selenium-webdriver": "^4.0.9",
     "@types/sqlite3": "^3.1.6",
     "tslint": "^6.1.2"
   }

@@ -1,7 +1,7 @@
 import * as express from "express";
 import * as csrf from "csurf";
-import * as sqlite3 from "sqlite3";
 import * as bodyParser from "body-parser";
+import {check, changePassword} from "../public/javascripts/auth";
 
 const router = express.Router();
 const csrfProtection = csrf({ cookie: true });
@@ -14,7 +14,7 @@ router.get('/signin', csrfProtection, (req, res) => {
 router.post('/signin', parseForm, csrfProtection, (req, res) => {
     check(req.body.id, req.body.password, (ok) => {
         if(ok) {
-            req.session.user = {id: req.body.id};
+            req.session.user = {id: req.body.id, password: req.body.password};
             res.redirect('/');
         }
         else {
@@ -38,6 +38,7 @@ router.post('/change', parseForm, csrfProtection, (req, res) => {
     check(req.body.id, req.body.oldpass, (ok) => {
         if (ok) {
             changePassword(req.body.id, req.body.newpass, () => {
+                req.session.user = {id: req.body.id, password: req.body.newpass};
                 res.redirect('/');
             });
         }
@@ -46,23 +47,5 @@ router.post('/change', parseForm, csrfProtection, (req, res) => {
         }
     });
 });
-
-function check(login: string, password: string, func: (ok:boolean) => void) {
-    const db = new sqlite3.Database('data.db');
-    db.all('SELECT * FROM users WHERE login = ? AND password = ?;', [login, password], (err, rows) => {
-        let exists = false;
-        rows.forEach(row => {
-            exists = true;
-        });
-        func(exists);
-    });
-}
-
-function changePassword(login: string, newPassword: string, func: () => void) {
-    const db = new sqlite3.Database('data.db');
-    db.run('INSERT INTO users VALUES (?, ?);', [login, newPassword], () => {
-        func();
-    });
-}
 
 module.exports = router;

@@ -13,11 +13,8 @@ head
       | &lt;
     #right_button.nav_button
       | &gt;
-    #score_info
-      | Tw&oacute;j og&oacute;lny wynik: 
-      p#score 0
     #buttons
-      #first_button.big_button
+      #second_button.big_button
         | Zakończ
   .main_box
     .main_content
@@ -33,6 +30,10 @@ head
           span#time_spended
             | 0
           |                         s
+        #avg_time_box
+          | Średni czas tego rozwiązywania tego pytania: 
+          span#avg_time
+            | s
       #question
         .question_content.quiz_table
           #question_field.content
@@ -42,5 +43,6 @@ head
         span#penalty_number
         | s
 script(src='/javascripts/main.js')
-script= 'let rawAns= `' + rawAns + '`; let rawTimes= `' + rawTimes + '`; parseTables(rawAns, rawTimes);'
+script= 'let rawAns= `' + rawAns + '`; let rawTimes= `' + rawTimes + '`;'
+script= 'let rawAvgs= `' + rawAvgs + '`; parseTables(rawAns, rawTimes, rawAvgs);'
 script= 'let raw = `' + rawQuiz + '`; parseQuiz(raw); resultsCustom();'
