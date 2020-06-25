@@ -1,4 +1,5 @@
 import * as sqlite3 from 'sqlite3';
+import {hashPassword} from './public/javascripts/auth';
 
 function create() {
     sqlite3.verbose();
@@ -49,10 +50,18 @@ function create() {
         db.run('INSERT INTO answers VALUES (4, 7, "325");');
     });
     db.run('CREATE TABLE users (login TEXT UNIQUE, password TEXT);', [], () => {
-        db.run('INSERT INTO users VALUES ("user1", "user1");');
-        db.run('INSERT INTO users VALUES ("user2", "user2");');
-        db.run('INSERT INTO users VALUES ("user3", "user3");');
-        db.run('INSERT INTO users VALUES ("user4", "user4");');
+        hashPassword('user1', (hash) => {
+            db.run('INSERT INTO users VALUES ("user1", ?);', [hash]);
+        });
+        hashPassword('user2', (hash) => {
+            db.run('INSERT INTO users VALUES ("user2", ?);', [hash]);
+        });
+        hashPassword('user3', (hash) => {
+            db.run('INSERT INTO users VALUES ("user3", ?);', [hash]);
+        });
+        hashPassword('user4', (hash) => {
+            db.run('INSERT INTO users VALUES ("user4", ?);', [hash]);
+        });
     });
     db.run('CREATE TABLE results (quiz TEXT, user TEXT, result REAL);');
     db.run('CREATE TABLE exact_results (quiz TEXT, user TEXT, question INTEGER, answered INTEGER, time REAL);');

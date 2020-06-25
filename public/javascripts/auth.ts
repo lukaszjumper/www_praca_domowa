@@ -1,20 +1,23 @@
 import * as sqlite3 from "sqlite3";
+import * as bcrypt from "bcrypt";
 
 export function check(login: string, password: string, func: (ok:boolean) => void) {
     const db = new sqlite3.Database('data.db');
-    db.all('SELECT * FROM users WHERE login = ? AND password = ?;', [login, password], (err, rows) => {
-        let exists = false;
-        rows.forEach(row => {
-            exists = true;
+    db.all('SELECT * FROM users WHERE login = ?;', [login], (err, rows) => {
+        rows.forEach((row) => {
+            bcrypt.compare(password, row.password, (err, result) => {
+                func(result);
+            });
         });
-        func(exists);
     });
 }
 
 export function changePassword(login: string, newPassword: string, func: () => void) {
     const db = new sqlite3.Database('data.db');
-    db.run('REPLACE INTO users VALUES (?, ?);', [login, newPassword], () => {
-        func();
+    hashPassword(newPassword, (hash) => {
+        db.run('REPLACE INTO users VALUES (?, ?);', [login, hash], () => {
+            func();
+        });
     });
 }
 
@@ -32,4 +35,10 @@ export function ifAuth(session: Express.Session, func: (ok: boolean) => void)  {
             }
         });
     }
+}
+
+export function hashPassword(password: string, func: (hash: string) => void) {
+    bcrypt.hash(password, 10, (err, hash) => {
+        func(hash);
+    });
 }

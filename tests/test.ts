@@ -8,7 +8,6 @@ import {Builder, By, Key, until} from 'selenium-webdriver';
         await driver.findElement(By.name('id')).sendKeys('user1');
         await driver.findElement(By.name('password')).sendKeys('user1', Key.ENTER);
         await driver.get('http://localhost:3000/quizes/geometria'); // Zakładamy, że ten quiz był rozwiązany przez user1
-        await driver.wait(until.elementLocated(By.id('nav')), 10000);
         const request =
         `const ansForm = document.createElement('form');
         ansForm.method = 'POST';

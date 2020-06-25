@@ -23,6 +23,7 @@
   "dependencies": {
     "@types/csurf": "^1.9.36",
     "@types/express-session": "^1.17.0",
+    "bcrypt": "^5.0.0",
     "connect-sqlite3": "^0.9.11",
     "cookie-parser": "^1.4.5",
     "csurf": "^1.11.0",
@@ -37,6 +38,7 @@
     "typescript": "^3.9.5"
   },
   "devDependencies": {
+    "@types/bcrypt": "^3.0.0",
     "@types/express": "^4.17.6",
     "@types/node": "^14.0.13",
     "@types/selenium-webdriver": "^4.0.9",

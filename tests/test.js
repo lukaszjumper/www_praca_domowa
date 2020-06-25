@@ -19,7 +19,6 @@ const selenium_webdriver_1 = require("selenium-webdriver");
             yield driver.findElement(selenium_webdriver_1.By.name('id')).sendKeys('user1');
             yield driver.findElement(selenium_webdriver_1.By.name('password')).sendKeys('user1', selenium_webdriver_1.Key.ENTER);
             yield driver.get('http://localhost:3000/quizes/geometria'); // Zakładamy, że ten quiz był rozwiązany przez user1
-            yield driver.wait(selenium_webdriver_1.until.elementLocated(selenium_webdriver_1.By.id('nav')), 10000);
             const request = `const ansForm = document.createElement('form');
         ansForm.method = 'POST';
         const ansInput = document.createElement('input');
