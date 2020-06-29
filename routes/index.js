@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = require("express");
-const sqlite3 = require("sqlite3");
 const bodyParser = require("body-parser");
 const auth_1 = require("../public/javascripts/auth");
+const DatabaseHandler_1 = require("../public/javascripts/DatabaseHandler");
+const dbHandler = new DatabaseHandler_1.DatabaseHandler();
 const router = express.Router();
 const parseForm = bodyParser.urlencoded({ extended: false });
 router.get('/', (req, res) => {
@@ -29,16 +30,14 @@ router.post('/', parseForm, (req, res) => {
     });
 });
 function getStats(func) {
-    const db = new sqlite3.Database('data.db');
-    db.all('SELECT * FROM results;', [], (err, rows) => {
-        let stats = new Array();
-        rows.forEach((row) => {
-            let stat = {};
-            stat.quiz = row.quiz;
-            stat.result = row.result;
-            stat.user = row.user;
-            stats.push(stat);
-        });
+    let stats = new Array();
+    dbHandler.selectResults((row) => {
+        let stat = {};
+        stat.quiz = row.quiz;
+        stat.result = row.result;
+        stat.user = row.user;
+        stats.push(stat);
+    }, () => {
         func(stats);
     });
 }

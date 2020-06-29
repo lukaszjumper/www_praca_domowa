@@ -1,25 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.hashPassword = exports.ifAuth = exports.changePassword = exports.check = void 0;
-const sqlite3 = require("sqlite3");
 const bcrypt = require("bcrypt");
+const DatabaseHandler_1 = require("./DatabaseHandler");
+const dbHandler = new DatabaseHandler_1.DatabaseHandler();
 function check(login, password, func) {
-    const db = new sqlite3.Database('data.db');
-    db.all('SELECT * FROM users WHERE login = ?;', [login], (err, rows) => {
-        rows.forEach((row) => {
-            bcrypt.compare(password, row.password, (err, result) => {
-                func(result);
-            });
+    dbHandler.selectUser(login, (row) => {
+        bcrypt.compare(password, row.password, (err, result) => {
+            func(result);
         });
     });
 }
 exports.check = check;
 function changePassword(login, newPassword, func) {
-    const db = new sqlite3.Database('data.db');
     hashPassword(newPassword, (hash) => {
-        db.run('REPLACE INTO users VALUES (?, ?);', [login, hash], () => {
-            func();
-        });
+        dbHandler.replacePass(login, hash, func);
     });
 }
 exports.changePassword = changePassword;

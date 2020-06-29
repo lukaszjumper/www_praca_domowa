@@ -3,6 +3,9 @@ import * as sqlite3 from "sqlite3";
 import * as bodyParser from "body-parser";
 import {Stats} from "../public/javascripts/types";
 import {ifAuth} from "../public/javascripts/auth";
+import { DatabaseHandler } from "../public/javascripts/DatabaseHandler";
+
+const dbHandler = new DatabaseHandler();
 
 const router = express.Router();
 const parseForm = bodyParser.urlencoded({ extended: false });
@@ -32,16 +35,14 @@ router.post('/', parseForm, (req, res) => {
 });
 
 function getStats(func: (loadedStats: Stats[]) => void) {
-  const db = new sqlite3.Database('data.db');
-  db.all('SELECT * FROM results;', [], (err, rows) => {
-    let stats = new Array<Stats>();
-    rows.forEach((row) => {
+  let stats = new Array<Stats>();
+  dbHandler.selectResults((row) => {
       let stat = {} as Stats;
       stat.quiz = row.quiz;
       stat.result = row.result;
       stat.user = row.user;
       stats.push(stat);
-    });
+    }, () => {
     func(stats);
   });
 }

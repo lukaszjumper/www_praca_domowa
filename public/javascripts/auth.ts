@@ -1,23 +1,19 @@
-import * as sqlite3 from "sqlite3";
 import * as bcrypt from "bcrypt";
+import {DatabaseHandler} from "./DatabaseHandler";
+
+const dbHandler = new DatabaseHandler();
 
 export function check(login: string, password: string, func: (ok:boolean) => void) {
-    const db = new sqlite3.Database('data.db');
-    db.all('SELECT * FROM users WHERE login = ?;', [login], (err, rows) => {
-        rows.forEach((row) => {
-            bcrypt.compare(password, row.password, (err, result) => {
-                func(result);
-            });
+    dbHandler.selectUser(login, (row) => {
+        bcrypt.compare(password, row.password, (err, result) => {
+            func(result);
         });
     });
 }
 
 export function changePassword(login: string, newPassword: string, func: () => void) {
-    const db = new sqlite3.Database('data.db');
     hashPassword(newPassword, (hash) => {
-        db.run('REPLACE INTO users VALUES (?, ?);', [login, hash], () => {
-            func();
-        });
+        dbHandler.replacePass(login, hash, func);
     });
 }
 

@@ -1,8 +1,10 @@
 import * as express from "express";
-import * as sqlite3 from "sqlite3";
 import {Question, Quiz} from "../public/javascripts/types";
 import * as bodyParser from "body-parser";
 import {ifAuth} from "../public/javascripts/auth";
+import { DatabaseHandler } from "../public/javascripts/DatabaseHandler";
+
+const dbHandler = new DatabaseHandler();
 
 const router = express.Router();
 const parseForm = bodyParser.urlencoded({ extended: false });
@@ -78,39 +80,33 @@ router.post('/:quizName', parseForm, (req, res) => {
 });
 
 function loadQuiz(quizName: string, quiz: Quiz, func: (quizToLoad: Quiz) => void) {
-  const db = new sqlite3.Database('data.db');
-  db.all('SELECT * FROM quizes WHERE name = ?;', [quizName], (err, rows) => {
-    rows.forEach((row) => {
-      quiz.intro = row.intro; // Jest tylko jeden wynik
-    });
+  dbHandler.selectQuiz(quizName, (row) => {
+    quiz.intro = row.intro; // Jest tylko jeden wynik
+  }, () => {
     quiz.questions = new Array<Question>();
-    db.all('SELECT * FROM questions WHERE quiz_name = ?;', [quizName], (err, questionRows) => {
-      let loadedCount = 0;
-      questionRows.forEach((row) => {
-        let newQuestion = {} as Question;
-        quiz.questions.push(newQuestion);
-        newQuestion.content = row.content;
-        newQuestion.correct = row.correct;
-        newQuestion.penalty = row.penalty;
-        newQuestion.answers = new Array<string>();
-        db.all('SELECT * FROM answers WHERE question_id = ?;', [row.id], (err, answerRows) => {
-          answerRows.forEach((ansRow) => {
-            newQuestion.answers.push(ansRow.content);
-          });
-          loadedCount++;
-          if (loadedCount === questionRows.length) {
-            func(quiz);
-          }
-        });
+    let loadedCount = 0;
+    dbHandler.selectQuestions(quizName, (row, rowsCount) => {
+      let newQuestion = {} as Question;
+      quiz.questions.push(newQuestion);
+      newQuestion.content = row.content;
+      newQuestion.correct = row.correct;
+      newQuestion.penalty = row.penalty;
+      newQuestion.answers = new Array<string>();
+      dbHandler.selectAnswers(row.id, (ansRow) => {
+        newQuestion.answers.push(ansRow.content);
+      }, () => {
+        loadedCount++;
+        if (loadedCount === rowsCount) {
+          func(quiz);
+        }
       });
     });
   });
 }
 
 function saveStats(answered: number[], times: number[], quizName: string, user: string, quiz: Quiz) {
-  const db = new sqlite3.Database('data.db');
   for (let i=0; i<answered.length; i++) {
-    db.run('INSERT INTO exact_results VALUES (?, ?, ?, ?, ?);', [quizName, user, i, answered[i], times[i]]);
+    dbHandler.insertStats(quizName, user, i, answered[i], times[i]);
   }
 
   let finalResult = 0;
@@ -120,33 +116,26 @@ function saveStats(answered: number[], times: number[], quizName: string, user: 
       finalResult += quiz.questions[i].penalty;
     }
   }
-
-  db.run('INSERT INTO results VALUES (?, ?, ?);', [quizName, user, finalResult]);
-  db.close();
+  dbHandler.insertGeneralStats(quizName, user, finalResult);
 }
 
 function userResults(user: string, quiz: string, func: (ans: number[], times: number[]) => void) {
-  const db = new sqlite3.Database('data.db');
   let userAns = [] as number[];
   let userTimes = [] as number[];
 
-  db.all('SELECT * FROM exact_results WHERE quiz = ? AND user = ?;', [quiz, user], (err, rows) => {
-    rows.forEach((row) => {
+  dbHandler.selectStats(quiz, user, (row) => {
       userAns[row.question] = row.answered;
       userTimes[row.question] = row.time;
-    });
+    }, () => {
     func(userAns, userTimes);
-  })
-  db.close();
+  });
 }
 
 function questionStats(quiz: string, func: (avgs: number[]) => void) {
-  const db = new sqlite3.Database('data.db');
-  db.all('SELECT question, avg(time) AS avg FROM exact_results WHERE quiz = ? GROUP BY question;', [quiz], (err, rows) => {
-    let avgTimes = [] as number[];
-    rows.forEach((row) => {
-      avgTimes[row.question] = row.avg;
-    });
+  let avgTimes = [] as number[];
+  dbHandler.selectQuizStats(quiz, (row) => {
+    avgTimes[row.question] = row.avg;
+  }, () => {
     func(avgTimes);
   });
 }

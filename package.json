@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "node ./tests/test.js",
-    "build": "tsc --target es2015 --module commonjs routes/index.ts routes/quizes.ts routes/logging.ts public/javascripts/main.ts public/javascripts/start.ts public/javascripts/types.ts public/javascripts/auth.ts createdb.ts tests/test.ts",
+    "build": "tsc --target es2015 --module commonjs routes/index.ts routes/quizes.ts routes/logging.ts public/javascripts/DatabaseHandler.ts public/javascripts/main.ts public/javascripts/start.ts public/javascripts/types.ts public/javascripts/auth.ts createdb.ts tests/test.ts",
     "start": "node ./bin/www",
     "createdb": "node ./createdb.js"
   },
